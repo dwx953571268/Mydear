@@ -1,0 +1,100 @@
+用到的工具：Xshell5 filezilla PuTTY
+
+A.注册 腾迅云平台 ，申请centos 云服务器
+
+B.下载安装xshell
+http://pan.baidu.com/s/1bnkv1oF
+
+C.怎么上传文件到腾讯云Linux服务器https://zhidao.baidu.com/question/2014402891733537028.html
+  Step1. 在云服务器配置FTP服务
+
+//1.在root权限下，通过如下命令安装Vsftp。
+[root@VM_250_202_tlinux ~]# yum install vsftpd
+
+2.在启动vsftpd服务之前，需要登录云服务器修改配置文件，将匿名登录禁用掉。打开配置文件，命令如下：
+[root@VM_250_202_tlinux ~]# vim /etc/vsftpd/vsftpd.conf
+在配置文件中第11行的“anonymous_enable=YES”前面加上#号，即将匿名登录禁用。
+
+3.读取生效配置。
+[root@VM_250_202_tlinux ~]# cat /etc/vsftpd/vsftpd.conf |grep ^[^#] 
+local_enable=YESwrite_enable=YESlocal_umask=022anon_upload_enable=YESanon_mkdir_write_enable=YESanon_umask=022dirmessage_enable=YESxferlog_enable=YESconnect_from_port_20=YESxferlog_std_format=YESlisten=YESpam_service_name=vsftpduserlist_enable=YEStcp_wrappers=YES
+
+4.启动vsftpd服务。
+[root@VM_250_202_tlinux ~]# service vsftpd start
+
+5.设置FTP用户账号。设置成功后，即可通过该账号登录FTP服务器。
+（1）设置FTP用户的账号，例如账号为“ftpuser1”，目录为/home/ftpuser1，且设置不允许通过ssh登录。
+[root@VM_250_202_tlinux ~]# useradd -m -d /home/ftpuser1 -s /sbin/nologin ftpuser1
+
+（2）设置账号对应的密码，例如密码为“ftpuser1”。
+[root@VM_250_202_tlinux ~]# passwd ftpuser1
+
+6.修改vsftpd的pam配置，使开发者可以通过自己设置的FTP用户帐号和密码连接到云服务器。（1）修改pam。
+[root@VM_250_202_tlinux ~]# vim /etc/pam.d/vsftpd
+内容修改为：
+#%PAM-1.0 auth required /lib64/security/pam_listfile.so item=user sense=deny file=/etc/ftpusers onerr=succeed auth required /lib64/security/pam_unix.so shadow nullok auth required /lib64/security/pam_shells.so account required /lib64/security/pam_unix.so session required /lib64/security/pam_unix.so 
+
+（2）确认修改后的文件是否正确。
+[root@VM_250_202_tlinux ~]# cat /etc/pam.d/vsftpd#%PAM-1.0 auth required /lib64/security/pam_listfile.so item=user sense=deny file=/etc/ftpusers onerr=succeed auth required /lib64/security/pam_unix.so shadow nullok auth required /lib64/security/pam_shells.so account required /lib64/security/pam_unix.so session required /lib64/security/pam_unix.so 
+（3）重启vsftpd服务，使修改生效。
+[root@VM_250_202_tlinux ~]# service vsftpd restart
+
+Shutting down vsftpd: [ OK ]Starting vsftpd for vsftpd: [ OK ]
+
+Step2. 上传文件到Linux云服务器
+1.下载并安装开源软件FileZilla请使用FileZilla的3.5.1、3.5.2版本（使用3.5.3版本的FileZilla进行FTP上传会有问题）。由于FileZilla 官网上只提供了最新的3.5.3版本下载，因此建议开发者自行搜索3.5.1、3.5.2下载地址。建议的3.5.1 下载地址：http://www.oldapps.com/filezilla.php?old_filezilla=6350
+2.连接FTP运行FileZilla，按下图所示进行配置，配置后点击“快速链接”：
+配置信息说明如下：
+（1）主机：云服务器的公网IP（在云服务器“管理视图”页面可查看云服务器的公网IP）。
+（2）用户名：在Step1中设置的FTP用户的账号，这里以“ftpuser1”为例。
+（3）密码：在Step1中设置的FTP用户账号对应的密码，这里以“ftpuser1”为例。
+（4）端口：FTP监听端口，默认为“21”。
+
+
+////
+遇到问题：不安全的服务器，不支持 FTP over TLS
+
+---无法解决 ---》点击文件-站点管理器-常规-主机（IP）、端口、协议（sftp）、登录类型（正常）、用户（root）、密码--登录
+
+////
+3.上传文件到Linux云服务器上传文件时，鼠标选中本地文件，拖拽到远程站点，即将文件上传到了Linux云服务器。注意：云服务器FTP通道不支持上传tar压缩包后自动解压，以及删除tar包功能。
+
+
+换一种思路：
+直接登录：http://bbs.qcloud.com/thread-1683-1-1.html
+
+参照开发文档：https://www.qcloud.com/document/product/213/2973
+
+
+Linux服务器搭建完成，httpd和网页文件上传到了服务器中，其中httpd压缩文件解压到了/usr/local/src/文件夹下，
+按照http://blog.csdn.net/larrywangsun/article/details/38154745中编译源代码安装，无法配置makefile文件，提示：configure: error: in `/usr/local/src/httpd-2.2.32/srclib/apr':
+configure: error: no acceptable C compiler found in $PATH
+
+
+//
+先安装GCC
+http://blog.csdn.net/bulljordan23/article/details/7723495/
+
+//
+
+按照方法：http://tonyguo.blog.51cto.com/379574/168534/
+
+
+其中配置Apache时我的httpd.conf文件是在/usr/local/apache2/conf中，修改里面的参数到第6）设置默认文件时不知道该如何办？
+
+
+#
+发现网页默认跳转到的是/usr/share/nginx/html中的index.html，我试着将自己的网页放在该文件夹下面，把原来的改成index1.html，但是没有用，方法错误！
+
+#
+安装完之后apache，apachectl start启动不了，总是提示：Job for httpd.service failed.
+****
+/用了方法1：http://www.iganlei.cn/web/236.html不能解决，因为/etc/host没有文件内容，自己加进去一些东西后，还是不行
+VM_191_131_centos
+*******
+/方法2：http://blog.csdn.net/ironali/article/details/45228699
+删除临时交换文件，也无法再次启动
+/用过这个：http://www.cnblogs.com/fly1988happy/archive/2011/12/14/2288064.html
+但是启动Apache还是报错
+
+
