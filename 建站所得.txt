@@ -1,0 +1,16 @@
+体验了一把腾迅云计算机部署Linux服务器，
+1.前期注册啥的：http://jingyan.baidu.com/article/da1091fbdb14e5027949d675.html
+新手教程：http://bbs.qcloud.com/thread-570-1-1.html
+
+2.下载 Xshell
+类似于Linux中的终端（terminal）：可以通过ssh连接到指定IP服务器
+
+3.怎么上传文件到腾讯云Linux服务器https
+  步骤1：在云端不知ftp服务：安装vsftp，匿名登录禁用，读取生效配置，启动vsftp服务，设置ftp账号，修改pam配置
+  步骤2：用FileZilla上传文件：  快速连接如有问题，点击文件-站点管理器-常规-主机（IP）、端口、协议（sftp）、登录类型（正常）、用户（root）、密码--登录
+
+4.Linux服务器搭建完成
+
+5.在这个系统中搭建 web服务器
+
+还用到的工具putty，类似上面的xshell，其实目前的云都有网页版的terminal登录，非常便捷
